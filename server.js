@@ -19,8 +19,8 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/photos', photoRoutes);
 
 // Test route
-app.get('/api/test', (req, res) => {
-  res.send('✅ API is working!');
+app.get('/', (req, res) => {
+  res.send('🚀 Space ERP backend is running!');
 });
 
 // MongoDB connection
