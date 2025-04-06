@@ -1,36 +1,47 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const cloudinary = require("../utils/cloudinaryConfig");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// Cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "space-erp-photos",
+    allowed_formats: ["jpg", "jpeg", "png"],
+  },
+});
+
+const upload = multer({ storage });
 
 router.post("/upload", upload.array("photos", 3), async (req, res) => {
   try {
-    const uploadedUrls = [];
+    const photoUrls = req.files.map((file) => file.path);
 
-    for (const file of req.files) {
-      const result = await cloudinary.uploader.upload_stream(
-        { folder: "space-erp" },
-        (error, result) => {
-          if (error) {
-            console.error("Cloudinary upload error:", error);
-            return res.status(500).json({ error: "Upload failed" });
-          }
-          uploadedUrls.push(result.secure_url);
+    const newEntry = {
+      school: req.body.school,
+      date: req.body.date,
+      activity: req.body.activity,
+      comments: req.body.comments,
+      photos: photoUrls,
+    };
 
-          if (uploadedUrls.length === req.files.length) {
-            return res.json({ urls: uploadedUrls });
-          }
-        }
-      );
-
-      result.end(file.buffer);
-    }
+    // Save to DB (if schema exists), or send response
+    res.status(200).json({
+      message: "Upload successful",
+      data: newEntry,
+    });
   } catch (err) {
     console.error("Upload error:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ message: "Upload failed", error: err });
   }
 });
 
