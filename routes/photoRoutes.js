@@ -1,9 +1,9 @@
-const express = require("express");
+// routes/photoRoutes.js
+const express = require('express');
 const router = express.Router();
-const multer = require("multer");
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const Report = require("../models/Report");
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // Cloudinary config
 cloudinary.config({
@@ -12,39 +12,23 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Storage setup
+// Multer & storage config
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "space-erp-photos",
-    allowed_formats: ["jpg", "jpeg", "png"],
+    folder: 'space-erp-photos',
+    allowed_formats: ['jpg', 'png'],
   },
 });
 
 const upload = multer({ storage });
 
-router.post("/upload", upload.array("photos", 3), async (req, res) => {
-  try {
-    const photoUrls = req.files.map((file) => file.path);
-
-    const newReport = new Report({
-      school: req.body.school,
-      date: req.body.date,
-      activity: req.body.activity,
-      comments: req.body.comments,
-      photos: photoUrls,
-    });
-
-    const savedReport = await newReport.save();
-
-    res.status(201).json({
-      message: "✅ Report saved successfully",
-      data: savedReport,
-    });
-  } catch (err) {
-    console.error("❌ Error uploading report:", err);
-    res.status(500).json({ message: "Upload failed", error: err });
+// POST /api/photos/upload
+router.post('/upload', upload.single('photo'), (req, res) => {
+  if (!req.file || !req.file.path) {
+    return res.status(400).json({ error: 'Upload failed' });
   }
+  res.json({ imageUrl: req.file.path });
 });
 
 module.exports = router;
