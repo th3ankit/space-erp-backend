@@ -15,6 +15,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/reports', reportRoutes);
+const photoRoutes = require("./routes/photoRoutes");
+app.use("/api/photos", photoRoutes);
 
 // Test route
 app.get('/api/test', (req, res) => {
