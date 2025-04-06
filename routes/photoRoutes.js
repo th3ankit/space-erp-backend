@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const Report = require("../models/Report");
 
 // Cloudinary config
 cloudinary.config({
@@ -11,7 +12,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Storage
+// Storage setup
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -26,21 +27,22 @@ router.post("/upload", upload.array("photos", 3), async (req, res) => {
   try {
     const photoUrls = req.files.map((file) => file.path);
 
-    const newEntry = {
+    const newReport = new Report({
       school: req.body.school,
       date: req.body.date,
       activity: req.body.activity,
       comments: req.body.comments,
       photos: photoUrls,
-    };
+    });
 
-    // Save to DB (if schema exists), or send response
-    res.status(200).json({
-      message: "Upload successful",
-      data: newEntry,
+    const savedReport = await newReport.save();
+
+    res.status(201).json({
+      message: "✅ Report saved successfully",
+      data: savedReport,
     });
   } catch (err) {
-    console.error("Upload error:", err);
+    console.error("❌ Error uploading report:", err);
     res.status(500).json({ message: "Upload failed", error: err });
   }
 });
