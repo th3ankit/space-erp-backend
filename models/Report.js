@@ -1,13 +1,11 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const reportSchema = new mongoose.Schema({
-  school: { type: String, required: true },
-  date: { type: String, required: true },
-  activity: { type: String, required: true },
-  comments: { type: String },
-  photos: [String],
-}, {
-  timestamps: true
+  school: String,
+  date: String,
+  activity: String,
+  comments: String,
+  photos: [String], // must be an array of strings (Cloudinary URLs)
 });
 
-module.exports = mongoose.model("Report", reportSchema);
+module.exports = mongoose.model('Report', reportSchema);
