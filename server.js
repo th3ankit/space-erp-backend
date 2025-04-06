@@ -1,9 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 const cors = require('cors');
-require('dotenv').config();
-
 const reportRoutes = require('./routes/reportRoutes');
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,22 +16,20 @@ app.use(express.json());
 // Routes
 app.use('/api/reports', reportRoutes);
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
-  console.log('MongoDB connected');
-}).catch((err) => {
-  console.error('MongoDB connection error:', err.message);
-});
-
 // Test route
 app.get('/api/test', (req, res) => {
-  res.send('API is working 🚀');
+  res.send('API is working!');
 });
+
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
 });
