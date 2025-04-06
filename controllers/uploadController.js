@@ -6,6 +6,8 @@ const uploadReport = async (req, res) => {
   try {
     const { school, date, activity, comments } = req.body;
     const files = req.files;
+console.log("Received fields:", req.body);
+console.log("Received files:", req.files);
 
     if (!files || files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
