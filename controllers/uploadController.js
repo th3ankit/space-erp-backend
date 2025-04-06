@@ -1,39 +1,40 @@
-// controllers/uploadController.js
-const cloudinary = require('cloudinary').v2;
 const Report = require('../models/Report');
+const cloudinary = require('cloudinary').v2;
 
-const uploadReport = async (req, res) => {
+exports.uploadReport = async (req, res) => {
   try {
+    console.log("✅ Received Body:", req.body);
+    console.log("✅ Received Files:", req.files);
+
     const { school, date, activity, comments } = req.body;
     const files = req.files;
-console.log("Received fields:", req.body);
-console.log("Received files:", req.files);
 
     if (!files || files.length === 0) {
-      return res.status(400).json({ message: "No files uploaded" });
+      return res.status(400).json({ error: 'No files uploaded' });
     }
 
-    const uploadedPhotos = await Promise.all(
-      files.map(file => cloudinary.uploader.upload(file.path))
-    );
+    const uploadedPhotos = [];
 
-    const photoUrls = uploadedPhotos.map(photo => photo.secure_url);
+    for (const file of files) {
+      const result = await cloudinary.uploader.upload(file.path);
+      uploadedPhotos.push(result.secure_url);
+    }
 
-    const newReport = new Report({
-      school,
-      date,
-      activity,
-      comments,
-      photos: photoUrls
+    const report = new Report({
+      school: school || "N/A",
+      date: date || new Date(),
+      activity: activity || "N/A",
+      comments: comments || "",
+      photos: uploadedPhotos,
     });
 
-    await newReport.save();
+    await report.save();
 
-    res.status(200).json({ message: "Report saved", report: newReport });
+    console.log("✅ Report Saved:", report);
+
+    res.status(200).json({ message: 'Uploaded successfully', report });
   } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("❌ Upload Error:", error);
+    res.status(500).json({ error: 'Something went wrong' });
   }
 };
-
-module.exports = { uploadReport };
